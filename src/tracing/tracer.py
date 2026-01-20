@@ -6,7 +6,7 @@ import json
 import time
 import uuid
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from threading import Lock
@@ -92,7 +92,7 @@ class Tracer:
             "name": name,
             "type": span_type,
             "metadata": metadata or {},
-            "start_time": datetime.utcnow().isoformat(),
+            "start_time": datetime.now(timezone.utc).isoformat(),
         }
         
         start = time.time()
@@ -105,7 +105,7 @@ class Tracer:
             span_data["error"] = error
             raise
         finally:
-            span_data["end_time"] = datetime.utcnow().isoformat()
+            span_data["end_time"] = datetime.now(timezone.utc).isoformat()
             span_data["duration_ms"] = (time.time() - start) * 1000
             
             if error is None:
