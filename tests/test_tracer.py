@@ -128,14 +128,15 @@ def test_nested_spans(tracer, temp_log_file):
         lines = f.readlines()
         assert len(lines) == 2
         
-        parent = json.loads(lines[0])
-        child = json.loads(lines[1])
+        # Child completes first, so it's written first
+        child = json.loads(lines[0])
+        parent = json.loads(lines[1])
         
-        assert parent["name"] == "child"
-        assert parent["parent_span_id"] is not None
+        assert child["name"] == "child"
+        assert child["parent_span_id"] is not None
         
-        assert child["name"] == "parent"
-        assert child["parent_span_id"] is None
+        assert parent["name"] == "parent"
+        assert parent["parent_span_id"] is None
 
 
 def test_auto_trace_initialization(tracer, temp_log_file):
