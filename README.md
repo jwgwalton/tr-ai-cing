@@ -21,11 +21,20 @@ This project consists of two main components:
 
 ## Installation
 
+### From PyPI (recommended)
+
+```bash
+pip install tr-ai-cing
+```
+
+### From Source
+
+For local development:
 ```bash
 pip install -e .
 ```
 
-For development:
+With development dependencies:
 ```bash
 pip install -e ".[dev]"
 ```
