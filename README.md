@@ -21,11 +21,20 @@ This project consists of two main components:
 
 ## Installation
 
+### From PyPI (recommended)
+
+```bash
+pip install tr-ai-cing
+```
+
+### From Source
+
+For local development:
 ```bash
 pip install -e .
 ```
 
-For development:
+With development dependencies:
 ```bash
 pip install -e ".[dev]"
 ```
@@ -198,6 +207,16 @@ pytest --cov=tracing --cov-report=html
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
+
+### For Maintainers
+
+**Testing the Build:**
+```bash
+./test_build.sh
+```
+
+**Publishing a Release:**
+See [RELEASING.md](./RELEASING.md) for detailed instructions on how to publish new versions to PyPI.
 
 ## License
 
