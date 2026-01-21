@@ -41,6 +41,11 @@ def get_current_tracer() -> Tracer:
     If no tracer has been set for the current context, this will create
     a default tracer with default parameters (log_file="trace.jsonl").
     
+    WARNING: The fallback behavior of creating a default tracer is convenient
+    for simple use cases but may not be ideal for production. In production,
+    consider requiring explicit tracer initialization and raising an error
+    if no tracer is set, or use dependency injection (Option 3) instead.
+    
     Returns:
         Tracer: The tracer instance for the current context
     """
@@ -48,6 +53,7 @@ def get_current_tracer() -> Tracer:
     if tracer is None:
         # Fallback: create a default tracer
         # Note: This will write to 'trace.jsonl' in the current directory
+        # In production, you might want to raise an error here instead
         tracer = Tracer()
         _current_tracer.set(tracer)
     return tracer

@@ -25,7 +25,7 @@ WHEN TO USE:
 - Teams that prefer explicit over implicit
 """
 
-from typing import Protocol, Any
+from typing import Protocol, Any, Optional
 from dataclasses import dataclass
 from tracing import Tracer
 
@@ -38,11 +38,12 @@ def simulate_llm_call(prompt: str, model: str = "gpt-4") -> str:
 # Define a protocol for anything that can trace (makes testing easier)
 class TracerProtocol(Protocol):
     """Protocol for tracer interface."""
-    def span(self, name: str, span_type: str = "llm_call", metadata: dict = None):
+    def span(self, name: str, span_type: str = "llm_call", metadata: Optional[dict] = None):
         ...
     
     def log_llm_call(self, name: str, input_data: Any, output_data: Any,
-                     model: str = None, provider: str = None, metadata: dict = None):
+                     model: Optional[str] = None, provider: Optional[str] = None, 
+                     metadata: Optional[dict] = None):
         ...
 
 
