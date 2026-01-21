@@ -6,6 +6,7 @@ import json
 import time
 import uuid
 from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -21,12 +22,12 @@ class Tracer:
     data transformations and error identification.
     """
     
-    def __init__(self, log_file: Union[str, Path] = "trace.jsonl", auto_flush: bool = True):
+    def __init__(self, log_file: Union[str, Path] = ".tr-ai-cing/trace.jsonl", auto_flush: bool = True):
         """
         Initialize the Tracer.
         
         Args:
-            log_file: Path to the log file (default: "trace.jsonl")
+            log_file: Path to the log file (default: ".tr-ai-cing/trace.jsonl")
             auto_flush: Whether to flush after each write (default: True)
         """
         self.log_file = Path(log_file)
@@ -170,6 +171,97 @@ def get_default_tracer() -> Tracer:
     return _default_tracer
 
 
+# Context variable for request-scoped tracers
+_current_tracer: ContextVar[Optional[Tracer]] = ContextVar('current_tracer', default=None)
+
+
+def get_current_tracer() -> Optional[Tracer]:
+    """
+    Get the tracer for the current context.
+    
+    This function retrieves the tracer instance that has been set for the 
+    current context (e.g., current request in a web application). It's 
+    thread-safe and async-safe, making it perfect for web applications
+    with concurrent requests.
+    
+    Returns:
+        Optional[Tracer]: The tracer instance for the current context, or None
+            if no tracer has been set for this context.
+    
+    Example:
+        ```python
+        # In a web app request handler
+        tracer = Tracer(log_file=f"trace_{request_id}.jsonl")
+        set_current_tracer(tracer)
+        
+        # In any function called during the request
+        tracer = get_current_tracer()
+        if tracer:
+            with tracer.span("my_operation"):
+                tracer.log_llm_call(...)
+        ```
+    """
+    return _current_tracer.get()
+
+
+def set_current_tracer(tracer: Optional[Tracer]) -> None:
+    """
+    Set the tracer for the current context.
+    
+    This function sets a tracer instance for the current context. The tracer
+    will be automatically available to all code running in the same context
+    (e.g., the same request, the same async task) without needing to pass it
+    as a parameter.
+    
+    Args:
+        tracer: The tracer instance to set for this context, or None to clear it.
+    
+    Example:
+        ```python
+        # At the start of a request
+        tracer = Tracer(log_file=f"trace_{request_id}.jsonl")
+        set_current_tracer(tracer)
+        tracer.start_trace(trace_id=request_id)
+        
+        try:
+            # Process the request - all functions can access the tracer
+            result = process_request(data)
+        finally:
+            tracer.end_trace()
+            set_current_tracer(None)  # Clean up
+        ```
+    """
+    _current_tracer.set(tracer)
+
+
+def get_tracer() -> Tracer:
+    """
+    Get a tracer instance, checking context first, then falling back to default.
+    
+    This is a convenience function that:
+    1. First checks if a tracer has been set for the current context
+    2. If not, falls back to the default global tracer
+    
+    This allows code to work in both context-based and global tracer scenarios
+    without modification.
+    
+    Returns:
+        Tracer: A tracer instance (either from context or the default)
+    
+    Example:
+        ```python
+        # Works whether you're using context tracers or the default tracer
+        tracer = get_tracer()
+        with tracer.span("my_operation"):
+            tracer.log_llm_call(...)
+        ```
+    """
+    tracer = get_current_tracer()
+    if tracer is None:
+        tracer = get_default_tracer()
+    return tracer
+
+
 def trace_llm_call(
     name: str,
     input_data: Any,
@@ -180,7 +272,11 @@ def trace_llm_call(
     tracer: Optional[Tracer] = None
 ):
     """
-    Convenience function to log an LLM call using the default or provided tracer.
+    Convenience function to log an LLM call using the context or default tracer.
+    
+    This function will first check if a tracer is set in the current context,
+    then fall back to the default tracer if not. This makes it work seamlessly
+    in both context-based and global tracer scenarios.
     
     Args:
         name: Name/description of the LLM call
@@ -189,10 +285,10 @@ def trace_llm_call(
         model: Model name
         provider: Provider name
         metadata: Additional metadata
-        tracer: Optional tracer instance (uses default if not provided)
+        tracer: Optional tracer instance (uses context/default if not provided)
     """
     if tracer is None:
-        tracer = get_default_tracer()
+        tracer = get_tracer()
     
     tracer.log_llm_call(
         name=name,

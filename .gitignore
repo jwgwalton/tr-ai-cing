@@ -136,3 +136,7 @@ Thumbs.db
 # Trace files
 *.trace.jsonl
 traces/
+trace.jsonl
+.tr-ai-cing/
+examples/*.jsonl
+examples/*.html

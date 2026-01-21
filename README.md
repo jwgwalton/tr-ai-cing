@@ -110,11 +110,11 @@ with tracer.span("risky_operation"):
 
 ### Tracer
 
-#### `Tracer(log_file="trace.jsonl", auto_flush=True)`
+#### `Tracer(log_file=".tr-ai-cing/trace.jsonl", auto_flush=True)`
 
 Create a new tracer instance.
 
-- `log_file`: Path to the log file (default: "trace.jsonl")
+- `log_file`: Path to the log file (default: ".tr-ai-cing/trace.jsonl")
 - `auto_flush`: Whether to flush after each write (default: True)
 
 #### Methods
@@ -123,6 +123,28 @@ Create a new tracer instance.
 - `end_trace()`: End the current trace
 - `span(name, span_type="llm_call", metadata=None)`: Context manager for tracing a span
 - `log_llm_call(name, input_data, output_data, model=None, provider=None, metadata=None)`: Log an LLM call
+
+### Helper Functions
+
+#### `get_default_tracer()`
+
+Get or create the default global tracer instance. Useful for the Global Singleton pattern.
+
+#### `get_current_tracer()`
+
+Get the tracer for the current context (thread-safe, async-safe). Returns `None` if no tracer has been set. Perfect for web applications with concurrent requests.
+
+#### `set_current_tracer(tracer)`
+
+Set a tracer for the current context. All code running in the same context (e.g., same request, same async task) can access it via `get_current_tracer()`.
+
+#### `get_tracer()`
+
+Convenience function that checks context first, then falls back to the default tracer. Works in both context-based and global tracer scenarios.
+
+#### `trace_llm_call(...)`
+
+Convenience function to log an LLM call using the default or provided tracer.
 
 ### Visualizer
 
@@ -161,6 +183,44 @@ Traces are logged in JSON Lines format. Each line is a JSON object with the foll
 }
 ```
 
+## Architecture Patterns
+
+For applications with multiple LLM calls across different parts of your codebase, you don't need to pass the tracer around! See our [Architecture Options Guide](docs/ARCHITECTURE_OPTIONS.md) for three different patterns:
+
+1. **Global Singleton Pattern** - Simple, quick to implement
+2. **Context Variable Pattern** - Perfect for web apps with concurrent requests (built-in, zero setup!)
+3. **Dependency Injection Pattern** - Best for large, testable applications
+
+### Quick Example: Context Variables (Recommended for Web Apps)
+
+```python
+from tracing import Tracer, get_current_tracer, set_current_tracer
+
+# In your request handler
+def handle_request(request_id: str):
+    tracer = Tracer(log_file=f"trace_{request_id}.jsonl")
+    set_current_tracer(tracer)  # Set once
+    tracer.start_trace(trace_id=request_id)
+    
+    # All nested functions automatically get the tracer
+    result = process_data()
+    
+    tracer.end_trace()
+    set_current_tracer(None)
+    return result
+
+# In any nested function - no tracer parameter needed!
+def process_data():
+    tracer = get_current_tracer()
+    if tracer:
+        with tracer.span("process"):
+            tracer.log_llm_call(...)
+```
+
+**No manual context variable setup required!** Just import and use.
+
+Each pattern includes complete examples and guidance on when to use it.
+
 ## Examples
 
 Check out the `examples/` directory for more detailed examples:
@@ -168,10 +228,14 @@ Check out the `examples/` directory for more detailed examples:
 - `basic_example.py`: Basic usage with simple and nested traces
 - `error_handling_example.py`: Error handling and retry patterns
 - `langgraph_example.py`: Tracing LangGraph workflows with multiple nodes and routing
+- `architecture_option1_global_singleton.py`: Global singleton pattern example
+- `architecture_option2_context_variable.py`: Context variable pattern for web apps
+- `architecture_option3_dependency_injection.py`: Dependency injection pattern
 
 Run an example:
 ```bash
 python examples/langgraph_example.py
+python examples/architecture_option2_context_variable.py
 ```
 
 ## Testing
