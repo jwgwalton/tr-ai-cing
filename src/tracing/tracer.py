@@ -272,7 +272,11 @@ def trace_llm_call(
     tracer: Optional[Tracer] = None
 ):
     """
-    Convenience function to log an LLM call using the default or provided tracer.
+    Convenience function to log an LLM call using the context or default tracer.
+    
+    This function will first check if a tracer is set in the current context,
+    then fall back to the default tracer if not. This makes it work seamlessly
+    in both context-based and global tracer scenarios.
     
     Args:
         name: Name/description of the LLM call
@@ -281,10 +285,10 @@ def trace_llm_call(
         model: Model name
         provider: Provider name
         metadata: Additional metadata
-        tracer: Optional tracer instance (uses default if not provided)
+        tracer: Optional tracer instance (uses context/default if not provided)
     """
     if tracer is None:
-        tracer = get_default_tracer()
+        tracer = get_tracer()
     
     tracer.log_llm_call(
         name=name,
