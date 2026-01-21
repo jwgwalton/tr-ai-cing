@@ -35,10 +35,19 @@ _current_tracer: ContextVar[Optional[Tracer]] = ContextVar('current_tracer', def
 
 
 def get_current_tracer() -> Tracer:
-    """Get the tracer for the current context."""
+    """
+    Get the tracer for the current context.
+    
+    If no tracer has been set for the current context, this will create
+    a default tracer with default parameters (log_file="trace.jsonl").
+    
+    Returns:
+        Tracer: The tracer instance for the current context
+    """
     tracer = _current_tracer.get()
     if tracer is None:
         # Fallback: create a default tracer
+        # Note: This will write to 'trace.jsonl' in the current directory
         tracer = Tracer()
         _current_tracer.set(tracer)
     return tracer
@@ -165,15 +174,27 @@ import time
 
 
 def simulate_concurrent_request(request_id: str, message: str, delay: float):
-    """Simulate a concurrent request with some processing delay."""
+    """
+    Simulate a concurrent request with some processing delay.
+    
+    Note: In a real web application, the 'examples/' directory would typically
+    be replaced with a configurable log directory from application settings.
+    """
     # Each thread has its own context, so tracers won't interfere
+    import os
     time.sleep(delay)
+    
+    # Use absolute path relative to current working directory
+    log_dir = os.path.join(os.getcwd(), "examples")
+    os.makedirs(log_dir, exist_ok=True)
+    
     result = handle_request(
         request_id=request_id,
         message=message,
-        log_file=f"examples/option2_request_{request_id}.jsonl"
+        log_file=os.path.join(log_dir, f"option2_request_{request_id}.jsonl")
     )
     print(f"✓ Request {request_id} completed: {result['status']}")
+
 
 
 def main():

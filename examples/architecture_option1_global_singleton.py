@@ -106,9 +106,10 @@ def main():
     
     # Configure the log file if needed (optional)
     # The default tracer uses "trace.jsonl"
-    # For custom configuration, create and set a custom tracer:
-    # from tracing.tracer import _default_tracer
-    # _default_tracer = Tracer(log_file="custom_trace.jsonl")
+    # For custom configuration, you can create a new tracer and use it:
+    # custom_tracer = Tracer(log_file="custom_trace.jsonl")
+    # custom_tracer.start_trace()
+    # Then use custom_tracer instead of the default one
     
     # Start trace
     trace_id = tracer.start_trace()

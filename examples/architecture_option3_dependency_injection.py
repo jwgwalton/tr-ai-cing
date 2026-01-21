@@ -25,7 +25,7 @@ WHEN TO USE:
 - Teams that prefer explicit over implicit
 """
 
-from typing import Protocol
+from typing import Protocol, Any
 from dataclasses import dataclass
 from tracing import Tracer
 
@@ -41,7 +41,7 @@ class TracerProtocol(Protocol):
     def span(self, name: str, span_type: str = "llm_call", metadata: dict = None):
         ...
     
-    def log_llm_call(self, name: str, input_data: any, output_data: any,
+    def log_llm_call(self, name: str, input_data: Any, output_data: Any,
                      model: str = None, provider: str = None, metadata: dict = None):
         ...
 
@@ -220,11 +220,21 @@ def example_test_with_mocking():
     """
     Example showing how dependency injection makes testing easier.
     
+    This demonstrates creating a mock tracer for testing purposes.
     With DI, you can easily inject mock tracers for testing without
     modifying global state or using context variables.
+    
+    In real tests, you would use unittest.mock.Mock or pytest fixtures
+    instead of this hand-rolled mock implementation.
     """
     # Create a mock tracer (in real tests, use unittest.mock or pytest fixtures)
     class MockTracer:
+        """
+        Simple mock tracer for testing.
+        
+        This captures spans and LLM calls for verification in tests.
+        In production tests, use unittest.mock.Mock or pytest fixtures.
+        """
         def __init__(self):
             self.spans = []
             self.calls = []
