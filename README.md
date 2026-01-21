@@ -110,11 +110,11 @@ with tracer.span("risky_operation"):
 
 ### Tracer
 
-#### `Tracer(log_file="trace.jsonl", auto_flush=True)`
+#### `Tracer(log_file=".tr-ai-cing/trace.jsonl", auto_flush=True)`
 
 Create a new tracer instance.
 
-- `log_file`: Path to the log file (default: "trace.jsonl")
+- `log_file`: Path to the log file (default: ".tr-ai-cing/trace.jsonl")
 - `auto_flush`: Whether to flush after each write (default: True)
 
 #### Methods

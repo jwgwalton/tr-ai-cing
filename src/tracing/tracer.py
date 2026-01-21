@@ -22,12 +22,12 @@ class Tracer:
     data transformations and error identification.
     """
     
-    def __init__(self, log_file: Union[str, Path] = "trace.jsonl", auto_flush: bool = True):
+    def __init__(self, log_file: Union[str, Path] = ".tr-ai-cing/trace.jsonl", auto_flush: bool = True):
         """
         Initialize the Tracer.
         
         Args:
-            log_file: Path to the log file (default: "trace.jsonl")
+            log_file: Path to the log file (default: ".tr-ai-cing/trace.jsonl")
             auto_flush: Whether to flush after each write (default: True)
         """
         self.log_file = Path(log_file)

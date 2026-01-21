@@ -137,5 +137,6 @@ Thumbs.db
 *.trace.jsonl
 traces/
 trace.jsonl
+.tr-ai-cing/
 examples/*.jsonl
 examples/*.html
