@@ -176,8 +176,11 @@ def test_langgraph_example_creates_trace_file(examples_dir, tmp_path):
             elif span_type == "llm_call":
                 llm_call_spans.append(log_entry)
         
-        # Should have 3 workflow spans (one for each example)
-        assert len(workflow_spans) == 3, f"Expected 3 workflow spans, got {len(workflow_spans)}"
+        # The example runs 3 scenarios, so should have 3 workflow spans
+        # Note: Update this if the example changes the number of scenarios
+        expected_workflows = 3
+        assert len(workflow_spans) == expected_workflows, \
+            f"Expected {expected_workflows} workflow spans, got {len(workflow_spans)}"
         
         # Should have agent node spans
         assert len(node_spans) > 0, "No agent node spans found"
@@ -266,13 +269,14 @@ def test_langgraph_example_creates_visualization(examples_dir, tmp_path):
 
 def test_all_examples_output_to_correct_location(examples_dir, tmp_path):
     """Test that all examples output files to the examples/ directory."""
-    examples = [
+    # Define example configurations
+    EXAMPLE_CONFIGS = [
         ("basic_example.py", "example_trace.jsonl", "trace_visualization.html"),
         ("error_handling_example.py", "error_trace.jsonl", "error_visualization.html"),
         ("langgraph_example.py", "langgraph_trace.jsonl", "langgraph_visualization.html"),
     ]
     
-    for script, trace_file, html_file in examples:
+    for script, trace_file, html_file in EXAMPLE_CONFIGS:
         # Run the example
         subprocess.run(
             [sys.executable, str(examples_dir / script)],
