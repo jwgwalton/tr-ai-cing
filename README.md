@@ -124,6 +124,16 @@ Create a new tracer instance.
 - `span(name, span_type="llm_call", metadata=None)`: Context manager for tracing a span
 - `log_llm_call(name, input_data, output_data, model=None, provider=None, metadata=None)`: Log an LLM call
 
+### Helper Functions
+
+#### `get_default_tracer()`
+
+Get or create the default global tracer instance. Useful for the Global Singleton pattern.
+
+#### `trace_llm_call(...)`
+
+Convenience function to log an LLM call using the default or provided tracer.
+
 ### Visualizer
 
 #### `Visualizer(log_file)`
