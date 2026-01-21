@@ -232,11 +232,11 @@
         
         <div class="stats">
             <div class="stat-box">
-                <div class="stat-value">1</div>
+                <div class="stat-value">2</div>
                 <div class="stat-label">Traces</div>
             </div>
             <div class="stat-box">
-                <div class="stat-value">8</div>
+                <div class="stat-value">16</div>
                 <div class="stat-label">Total Spans</div>
             </div>
         </div>
@@ -498,6 +498,295 @@
                     <div class="detail-section"><strong>Provider:</strong> openai</div>
                     <div class="detail-section">
                         <strong>Start Time:</strong> 2026-01-20T17:15:00.863609+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Translate to French: Hello, world!</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Bonjour, monde!</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "source_lang": "en",
+  "target_lang": "fr"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+
+        <div class="trace-container">
+            <div class="trace-header">
+                <h2>Trace: 9f41a441...</h2>
+                <span class="span-count">8 span(s)</span>
+            </div>
+            <div class="trace-dag">
+                
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">summarize_text</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.14ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 40a5f692-ea4f-488e-a7c8-900a1d83c79d
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.382948+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.14ms
+                    </div>
+                    
+                    
+                    
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "user": "alice"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">text_summarization</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 0146d6b5-4083-4adc-a6c2-9478ac2fd740
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.382982+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Summarize the following text: ...</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Response to: Summarize the following text: ...</pre>
+        </div>
+        
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">complex_workflow</span>
+                    <span class="span-type">workflow</span>
+                    <span class="span-duration">0.20ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> a4b24c4b-3bd3-4590-a00c-6a73f4ae6340
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.383167+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.20ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">extract_entities</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 8dd17f2e-c157-45b2-88d7-42a688f32df4
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.383180+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">entity_extraction</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 76e4905e-556c-474a-bd74-85f5fb89304f
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-3.5-turbo</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.383191+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Extract entities from: John works at OpenAI</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Response to: Extract entities from: John works at OpenAI</pre>
+        </div>
+        
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">classify_sentiment</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 363f3e09-e2f5-4197-a3c5-c0c14742d64a
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.383284+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">sentiment_analysis</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 7d502d6a-bba0-4f3d-9644-a399627cccaa
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-3.5-turbo</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.383297+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Classify sentiment: I love this product!</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Response to: Classify sentiment: I love this product!</pre>
+        </div>
+        
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">translation</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> df3543e7-dda5-4e19-b0b0-b291668f66bd
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:54:04.383414+00:00
                     </div>
                     <div class="detail-section">
                         <strong>Duration:</strong> 0.00ms
