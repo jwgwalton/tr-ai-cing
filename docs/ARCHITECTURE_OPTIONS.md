@@ -111,14 +111,15 @@ def process_message(message: str):
     tracer = get_current_tracer()  # Built-in function!
     if tracer:
         with tracer.span("process_message"):
-        entities = extract_entities(message)  # No tracer parameter
-        sentiment = classify_sentiment(message)  # No tracer parameter
-        return {"entities": entities, "sentiment": sentiment}
+            entities = extract_entities(message)  # No tracer parameter
+            sentiment = classify_sentiment(message)  # No tracer parameter
+            return {"entities": entities, "sentiment": sentiment}
 
 def extract_entities(text: str):
     tracer = get_current_tracer()  # Gets tracer from context
-    with tracer.span("extract_entities"):
-        tracer.log_llm_call(...)
+    if tracer:
+        with tracer.span("extract_entities"):
+            tracer.log_llm_call(...)
 ```
 
 ### Pros
