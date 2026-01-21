@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tr-ai-cing - Trace Visualization</title>
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .trace-container {
+            margin: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .trace-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .trace-header h2 {
+            font-size: 1.3em;
+            color: #333;
+        }
+        
+        .span-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .trace-dag {
+            padding: 20px;
+        }
+        
+        .span-node {
+            margin-bottom: 10px;
+        }
+        
+        .span-header {
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .span-header:hover {
+            background: #e9ecef;
+            transform: translateX(2px);
+        }
+        
+        .span-header.status-success {
+            border-left-color: #28a745;
+        }
+        
+        .span-header.status-error {
+            border-left-color: #dc3545;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.2s;
+            font-size: 0.8em;
+        }
+        
+        .span-header.expanded .toggle-icon {
+            transform: rotate(90deg);
+        }
+        
+        .span-name {
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .span-type {
+            background: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        
+        .span-duration {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .span-status {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .status-success .span-status {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error .span-status {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .span-details {
+            margin-top: 10px;
+            padding: 15px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detail-section strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .io-data {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #dee2e6;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 tr-ai-cing - Trace Visualization</h1>
+            <p class="subtitle">LLM Application Observability</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Traces</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Total Spans</div>
+            </div>
+        </div>
+        
+        
+        <div class="trace-container">
+            <div class="trace-header">
+                <h2>Trace: b484915f...</h2>
+                <span class="span-count">5 span(s)</span>
+            </div>
+            <div class="trace-dag">
+                
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">successful_call</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.14ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> b94544b0-8882-483c-9741-92a99a987356
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-20T17:15:08.729004+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.14ms
+                    </div>
+                    
+                    
+                    
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "attempt": 1
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">geography_question</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 32cda54b-9b56-48bc-8508-d750b757ea01
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-20T17:15:08.729027+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">What is the capital of France?</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Response to: What is the capital of France?</pre>
+        </div>
+        
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">failed_call</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.02ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 1112205b-b181-4a4c-af0c-dd0223ab3f1b
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-20T17:15:08.729207+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.02ms
+                    </div>
+                    
+                    
+                    
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "attempt": 1
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">retry_call</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> ec5824e0-d204-4913-b752-ecfb51943cc7
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-20T17:15:08.729283+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "attempt": 2
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">physics_question_retry</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> e4dd5bb8-b76c-46f4-a981-7dba408e481f
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-20T17:15:08.729296+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">What is quantum mechanics?</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Response to: What is quantum mechanics?</pre>
+        </div>
+        
+                    
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        
+        function toggleSpan(element) {
+            const details = element.nextElementSibling;
+            if (details && details.classList.contains('span-details')) {
+                if (details.style.display === 'none') {
+                    details.style.display = 'block';
+                    element.classList.add('expanded');
+                } else {
+                    details.style.display = 'none';
+                    element.classList.remove('expanded');
+                }
+            }
+        }
+        
+    </script>
+</body>
+</html>
