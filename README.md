@@ -161,6 +161,16 @@ Traces are logged in JSON Lines format. Each line is a JSON object with the foll
 }
 ```
 
+## Architecture Patterns
+
+For applications with multiple LLM calls across different parts of your codebase, you don't need to pass the tracer around! See our [Architecture Options Guide](docs/ARCHITECTURE_OPTIONS.md) for three different patterns:
+
+1. **Global Singleton Pattern** - Simple, quick to implement
+2. **Context Variable Pattern** - Perfect for web apps with concurrent requests
+3. **Dependency Injection Pattern** - Best for large, testable applications
+
+Each pattern includes complete examples and guidance on when to use it.
+
 ## Examples
 
 Check out the `examples/` directory for more detailed examples:
@@ -168,10 +178,14 @@ Check out the `examples/` directory for more detailed examples:
 - `basic_example.py`: Basic usage with simple and nested traces
 - `error_handling_example.py`: Error handling and retry patterns
 - `langgraph_example.py`: Tracing LangGraph workflows with multiple nodes and routing
+- `architecture_option1_global_singleton.py`: Global singleton pattern example
+- `architecture_option2_context_variable.py`: Context variable pattern for web apps
+- `architecture_option3_dependency_injection.py`: Dependency injection pattern
 
 Run an example:
 ```bash
 python examples/langgraph_example.py
+python examples/architecture_option2_context_variable.py
 ```
 
 ## Testing
