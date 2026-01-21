@@ -4,8 +4,10 @@
 
 This project uses `uv` as the Python package manager. When working with dependencies:
 
-- Use `uv pip install <package>` to install packages
-- Use `uv pip install -e ".[dev]"` to install the project in development mode with dev dependencies
+- Use `uv add <package>` to add packages to the project
+- Use `uv add --dev <package>` to add development dependencies
+- Use `uv sync` to install all dependencies
+- Use `uv sync --dev` to install all dependencies including dev dependencies
 - Use `uv run <command>` to run commands in the project's virtual environment
 
 ## Testing
@@ -19,6 +21,6 @@ This project uses `pytest` for testing. When running tests:
 
 ## Development Workflow
 
-1. Install dependencies: `uv pip install -e ".[dev]"`
+1. Install dependencies: `uv sync --dev`
 2. Run tests: `uv run pytest -v`
 3. Run tests with coverage: `uv run pytest --cov=tracing --cov-report=html`
