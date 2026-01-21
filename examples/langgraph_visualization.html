@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tr-ai-cing - Trace Visualization</title>
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .trace-container {
+            margin: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .trace-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .trace-header h2 {
+            font-size: 1.3em;
+            color: #333;
+        }
+        
+        .span-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .trace-dag {
+            padding: 20px;
+        }
+        
+        .span-node {
+            margin-bottom: 10px;
+        }
+        
+        .span-header {
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .span-header:hover {
+            background: #e9ecef;
+            transform: translateX(2px);
+        }
+        
+        .span-header.status-success {
+            border-left-color: #28a745;
+        }
+        
+        .span-header.status-error {
+            border-left-color: #dc3545;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.2s;
+            font-size: 0.8em;
+        }
+        
+        .span-header.expanded .toggle-icon {
+            transform: rotate(90deg);
+        }
+        
+        .span-name {
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .span-type {
+            background: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        
+        .span-duration {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .span-status {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .status-success .span-status {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error .span-status {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .span-details {
+            margin-top: 10px;
+            padding: 15px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detail-section strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .io-data {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #dee2e6;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 tr-ai-cing - Trace Visualization</h1>
+            <p class="subtitle">LLM Application Observability</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Traces</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">21</div>
+                <div class="stat-label">Total Spans</div>
+            </div>
+        </div>
+        
+        
+        <div class="trace-container">
+            <div class="trace-header">
+                <h2>Trace: 699fde37...</h2>
+                <span class="span-count">21 span(s)</span>
+            </div>
+            <div class="trace-dag">
+                
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">langgraph_workflow</span>
+                    <span class="span-type">workflow</span>
+                    <span class="span-duration">0.51ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> aa3f13f0-3b3a-446b-8ac1-ddb92e2d6e6a
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.959949+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.51ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">analyze_input</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.14ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> c02b3337-5825-42c1-b91e-2ebfde71106f
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.959974+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.14ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">intent_classification</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 862a4386-3f31-4056-a642-9957ae21e914
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.959987+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Classify the intent of this message: What's the weather like today?</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">The weather is sunny and 72°F</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "analyze_input"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">direct_response_node</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 3c9a164a-be1d-40c3-9d57-dd290dd7c543
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960206+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">direct_response_generation</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 67fa86fc-f68c-46eb-919e-ba384d88d7f2
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960224+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Respond to: What's the weather like today?</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">The weather is sunny and 72°F</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "direct_response_node"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">generate_final_response</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.07ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 3c03a36c-8aac-4b64-a3ef-2a002bf2b174
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960342+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.07ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">final_response_synthesis</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 4aacabbd-287a-4dfe-a2f6-d1925eeef35d
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960365+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Generate final response based on:
+What's the weather like today?
+[Analysis: The weather is sunny and 72°F]
+[Direct response: The weather is sunny and 72°F]</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">The weather is sunny and 72°F</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "generate_final_response"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">langgraph_workflow</span>
+                    <span class="span-type">workflow</span>
+                    <span class="span-duration">0.38ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> ca75580a-6d68-4501-b604-39eaaaa207c7
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960564+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.38ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">analyze_input</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 1fde97dc-8f43-4524-8c0e-b589ee7d09bc
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960578+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">intent_classification</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 9e24ea84-c641-4771-8461-4f551cc176b2
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960589+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Classify the intent of this message: What is the capital of France?</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Paris is the capital of France</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "analyze_input"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">direct_response_node</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.05ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> abb9c34b-9eed-4a1f-b0fa-b208e7047677
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960706+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.05ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">direct_response_generation</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> d048b8ad-fbd1-4fd7-94e6-6a6d208e702e
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960720+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Respond to: What is the capital of France?</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Paris is the capital of France</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "direct_response_node"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">generate_final_response</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 5c0fa3cb-1601-4678-b4ba-fa378c090081
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960812+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">final_response_synthesis</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> b6b47562-62d4-4df7-8d68-05491d8a1a2f
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.960833+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Generate final response based on:
+What is the capital of France?
+[Analysis: Paris is the capital of France]
+[Direct response: Paris is the capital of France]</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">Paris is the capital of France</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "generate_final_response"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 0px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">langgraph_workflow</span>
+                    <span class="span-type">workflow</span>
+                    <span class="span-duration">0.38ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> f7f8b571-8e18-4f11-a96e-090dc3ab72db
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961028+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.38ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">analyze_input</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.05ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 379a99ed-f17a-4e4d-a6fe-9fcbbd51abea
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961041+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.05ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">intent_classification</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 579a7efc-a9a5-47cc-8801-378371474d7c
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961051+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Classify the intent of this message: Tell me about artificial intelligence</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">I understand your message: Classify the intent of this message: Tell me about artificial intelligence</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "analyze_input"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">direct_response_node</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> d14e80c2-d518-46c0-8227-b4e8655f670e
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961162+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">direct_response_generation</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 520c4fd8-4c8c-4a46-9545-337e81f1cc49
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961178+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Respond to: Tell me about artificial intelligence</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">I understand your message: Respond to: Tell me about artificial intelligence</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "direct_response_node"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 40px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">generate_final_response</span>
+                    <span class="span-type">agent_node</span>
+                    <span class="span-duration">0.06ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 6df8609e-a2f5-4e72-8f51-c903c2e272b3
+                    </div>
+                    
+                    
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961289+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.06ms
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+            
+
+            <div class="span-node" style="margin-left: 80px;">
+                <div class="span-header status-success" onclick="toggleSpan(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span class="span-name">final_response_synthesis</span>
+                    <span class="span-type">llm_call</span>
+                    <span class="span-duration">0.00ms</span>
+                    <span class="span-status">success</span>
+                </div>
+                <div class="span-details" style="display: none;">
+                    <div class="detail-section">
+                        <strong>Span ID:</strong> 82564cd5-c10b-4ddd-8979-2da75b36a549
+                    </div>
+                    <div class="detail-section"><strong>Model:</strong> gpt-4</div>
+                    <div class="detail-section"><strong>Provider:</strong> openai</div>
+                    <div class="detail-section">
+                        <strong>Start Time:</strong> 2026-01-21T12:22:46.961309+00:00
+                    </div>
+                    <div class="detail-section">
+                        <strong>Duration:</strong> 0.00ms
+                    </div>
+                    
+                    
+        <div class="detail-section">
+            <strong>Input:</strong>
+            <pre class="io-data">Generate final response based on:
+Tell me about artificial intelligence
+[Analysis: I understand your message: Classify the intent of this message: Tell me about artificial intelligence]
+[Direct response: I understand your message: Respond to: Tell me about artificial intelligence]</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Output:</strong>
+            <pre class="io-data">I understand your message: Generate final response based on:
+Tell me about artificial intelligence
+[Analysis: I understand your message: Classify the intent of this message: Tell me about artificial intelligence]
+[Direct response: I understand your message: Respond to: Tell me about artificial intelligence]</pre>
+        </div>
+        
+                    
+        <div class="detail-section">
+            <strong>Metadata:</strong>
+            <pre class="io-data">{
+  "node": "generate_final_response"
+}</pre>
+        </div>
+        
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        
+        function toggleSpan(element) {
+            const details = element.nextElementSibling;
+            if (details && details.classList.contains('span-details')) {
+                if (details.style.display === 'none') {
+                    details.style.display = 'block';
+                    element.classList.add('expanded');
+                } else {
+                    details.style.display = 'none';
+                    element.classList.remove('expanded');
+                }
+            }
+        }
+        
+    </script>
+</body>
+</html>

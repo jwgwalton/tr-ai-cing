@@ -25,6 +25,18 @@ This demonstrates:
 - How errors are displayed in the visualization
 - Retry patterns
 
+### LangGraph Example
+```bash
+python langgraph_example.py
+```
+
+This demonstrates:
+- Tracing LangGraph workflows with multiple nodes
+- Capturing agent state transitions
+- Tracking routing decisions in conditional edges
+- Visualizing the complete graph execution flow
+- Hierarchical span relationships in agent workflows
+
 ## Generated Files
 
 After running the examples, you'll see:
