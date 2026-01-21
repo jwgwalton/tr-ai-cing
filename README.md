@@ -130,6 +130,18 @@ Create a new tracer instance.
 
 Get or create the default global tracer instance. Useful for the Global Singleton pattern.
 
+#### `get_current_tracer()`
+
+Get the tracer for the current context (thread-safe, async-safe). Returns `None` if no tracer has been set. Perfect for web applications with concurrent requests.
+
+#### `set_current_tracer(tracer)`
+
+Set a tracer for the current context. All code running in the same context (e.g., same request, same async task) can access it via `get_current_tracer()`.
+
+#### `get_tracer()`
+
+Convenience function that checks context first, then falls back to the default tracer. Works in both context-based and global tracer scenarios.
+
 #### `trace_llm_call(...)`
 
 Convenience function to log an LLM call using the default or provided tracer.
@@ -176,8 +188,36 @@ Traces are logged in JSON Lines format. Each line is a JSON object with the foll
 For applications with multiple LLM calls across different parts of your codebase, you don't need to pass the tracer around! See our [Architecture Options Guide](docs/ARCHITECTURE_OPTIONS.md) for three different patterns:
 
 1. **Global Singleton Pattern** - Simple, quick to implement
-2. **Context Variable Pattern** - Perfect for web apps with concurrent requests
+2. **Context Variable Pattern** - Perfect for web apps with concurrent requests (built-in, zero setup!)
 3. **Dependency Injection Pattern** - Best for large, testable applications
+
+### Quick Example: Context Variables (Recommended for Web Apps)
+
+```python
+from tracing import Tracer, get_current_tracer, set_current_tracer
+
+# In your request handler
+def handle_request(request_id: str):
+    tracer = Tracer(log_file=f"trace_{request_id}.jsonl")
+    set_current_tracer(tracer)  # Set once
+    tracer.start_trace(trace_id=request_id)
+    
+    # All nested functions automatically get the tracer
+    result = process_data()
+    
+    tracer.end_trace()
+    set_current_tracer(None)
+    return result
+
+# In any nested function - no tracer parameter needed!
+def process_data():
+    tracer = get_current_tracer()
+    if tracer:
+        with tracer.span("process"):
+            tracer.log_llm_call(...)
+```
+
+**No manual context variable setup required!** Just import and use.
 
 Each pattern includes complete examples and guidance on when to use it.
 

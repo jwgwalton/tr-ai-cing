@@ -4,6 +4,9 @@ Architecture Option 2: Context Variable Pattern
 This pattern uses Python's contextvars module to store the tracer in a context
 variable that is automatically propagated through function calls and async tasks.
 
+NOW BUILT INTO THE PACKAGE! Just import and use get_current_tracer() and 
+set_current_tracer() directly from the tracing package.
+
 PROS:
 - Thread-safe and async-safe
 - No need to pass tracer as parameter
@@ -11,11 +14,10 @@ PROS:
 - Works seamlessly with async/await
 - Easy to test (context is isolated per execution)
 - Supports concurrent requests without interference
+- Built into the package - no setup required!
 
 CONS:
 - Requires Python 3.7+
-- Slightly more complex setup than global singleton
-- Developers need to understand context variables
 
 WHEN TO USE:
 - Web applications with concurrent requests (FastAPI, Flask, etc.)
@@ -25,43 +27,7 @@ WHEN TO USE:
 - When you need request-level isolation
 """
 
-from contextvars import ContextVar
-from typing import Optional
-from tracing import Tracer
-
-
-# Create a context variable to hold the current tracer
-_current_tracer: ContextVar[Optional[Tracer]] = ContextVar('current_tracer', default=None)
-
-
-def get_current_tracer() -> Tracer:
-    """
-    Get the tracer for the current context.
-    
-    If no tracer has been set for the current context, this will create
-    a default tracer with default parameters (log_file="trace.jsonl").
-    
-    WARNING: The fallback behavior of creating a default tracer is convenient
-    for simple use cases but may not be ideal for production. In production,
-    consider requiring explicit tracer initialization and raising an error
-    if no tracer is set, or use dependency injection (Option 3) instead.
-    
-    Returns:
-        Tracer: The tracer instance for the current context
-    """
-    tracer = _current_tracer.get()
-    if tracer is None:
-        # Fallback: create a default tracer
-        # Note: This will write to 'trace.jsonl' in the current directory
-        # In production, you might want to raise an error here instead
-        tracer = Tracer()
-        _current_tracer.set(tracer)
-    return tracer
-
-
-def set_current_tracer(tracer: Tracer) -> None:
-    """Set the tracer for the current context."""
-    _current_tracer.set(tracer)
+from tracing import Tracer, get_current_tracer, set_current_tracer
 
 
 def simulate_llm_call(prompt: str, model: str = "gpt-4") -> str:
@@ -73,18 +39,24 @@ def simulate_llm_call(prompt: str, model: str = "gpt-4") -> str:
 def extract_entities(text: str) -> dict:
     """Extract entities from text using LLM."""
     # Get tracer from context - automatically isolated per request
+    # The tracer is set by the request handler, no need to pass it around!
     tracer = get_current_tracer()
     
-    with tracer.span("extract_entities"):
+    if tracer:  # Check if tracer is set
+        with tracer.span("extract_entities"):
+            prompt = f"Extract entities from: {text}"
+            response = simulate_llm_call(prompt)
+            tracer.log_llm_call(
+                name="entity_extraction",
+                input_data=prompt,
+                output_data=response,
+                model="gpt-4",
+                provider="openai"
+            )
+    else:
+        # If no tracer is set, still run the logic
         prompt = f"Extract entities from: {text}"
         response = simulate_llm_call(prompt)
-        tracer.log_llm_call(
-            name="entity_extraction",
-            input_data=prompt,
-            output_data=response,
-            model="gpt-4",
-            provider="openai"
-        )
     
     return {"entities": response}
 
@@ -94,16 +66,20 @@ def classify_sentiment(text: str) -> str:
     # Get tracer from context
     tracer = get_current_tracer()
     
-    with tracer.span("classify_sentiment"):
+    if tracer:  # Check if tracer is set
+        with tracer.span("classify_sentiment"):
+            prompt = f"Classify sentiment: {text}"
+            response = simulate_llm_call(prompt)
+            tracer.log_llm_call(
+                name="sentiment_analysis",
+                input_data=prompt,
+                output_data=response,
+                model="gpt-3.5-turbo",
+                provider="openai"
+            )
+    else:
         prompt = f"Classify sentiment: {text}"
         response = simulate_llm_call(prompt)
-        tracer.log_llm_call(
-            name="sentiment_analysis",
-            input_data=prompt,
-            output_data=response,
-            model="gpt-3.5-turbo",
-            provider="openai"
-        )
     
     return response
 
@@ -113,27 +89,34 @@ def process_user_message(message: str) -> dict:
     """Process a user message through multiple LLM steps."""
     tracer = get_current_tracer()
     
-    with tracer.span("process_user_message", span_type="workflow"):
-        # Call functions - they automatically get the same tracer from context
+    if tracer:
+        with tracer.span("process_user_message", span_type="workflow"):
+            # Call functions - they automatically get the same tracer from context
+            entities = extract_entities(message)
+            sentiment = classify_sentiment(message)
+            
+            with tracer.span("generate_summary"):
+                prompt = f"Summarize analysis for: {message}"
+                summary = simulate_llm_call(prompt)
+                tracer.log_llm_call(
+                    name="summary_generation",
+                    input_data=prompt,
+                    output_data=summary,
+                    model="gpt-4",
+                    provider="openai"
+                )
+    else:
+        # No tracer set, still process the message
         entities = extract_entities(message)
         sentiment = classify_sentiment(message)
-        
-        with tracer.span("generate_summary"):
-            prompt = f"Summarize analysis for: {message}"
-            summary = simulate_llm_call(prompt)
-            tracer.log_llm_call(
-                name="summary_generation",
-                input_data=prompt,
-                output_data=summary,
-                model="gpt-4",
-                provider="openai"
-            )
-        
-        return {
-            "entities": entities,
-            "sentiment": sentiment,
-            "summary": summary
-        }
+        prompt = f"Summarize analysis for: {message}"
+        summary = simulate_llm_call(prompt)
+    
+    return {
+        "entities": entities,
+        "sentiment": sentiment,
+        "summary": summary
+    }
 
 
 # Module 3: Request handlers (simulating web app behavior)

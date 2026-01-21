@@ -84,27 +84,18 @@ def classify_sentiment(text: str) -> str:
 ### Overview
 Uses Python's `contextvars` module to store the tracer in a context variable that automatically propagates through function calls and async tasks while maintaining isolation between concurrent executions.
 
+**Now built into the package!** Just import `get_current_tracer()` and `set_current_tracer()` - no manual setup required.
+
 ### Example Usage
 
 ```python
-from contextvars import ContextVar
-from typing import Optional
-from tracing import Tracer
-
-# Create context variable
-_current_tracer: ContextVar[Optional[Tracer]] = ContextVar('current_tracer', default=None)
-
-def get_current_tracer() -> Tracer:
-    return _current_tracer.get()
-
-def set_current_tracer(tracer: Tracer) -> None:
-    _current_tracer.set(tracer)
+from tracing import Tracer, get_current_tracer, set_current_tracer
 
 # In your request handler
 def handle_request(request_id: str, message: str):
     # Create and set tracer for this request/context
     tracer = Tracer(log_file=f"trace_{request_id}.jsonl")
-    set_current_tracer(tracer)
+    set_current_tracer(tracer)  # Built-in function!
     
     tracer.start_trace(trace_id=request_id)
     
@@ -112,12 +103,14 @@ def handle_request(request_id: str, message: str):
     result = process_message(message)
     
     tracer.end_trace()
+    set_current_tracer(None)  # Clean up
     return result
 
 # In nested functions - no tracer parameter needed!
 def process_message(message: str):
-    tracer = get_current_tracer()  # Automatically gets the right tracer
-    with tracer.span("process_message"):
+    tracer = get_current_tracer()  # Built-in function!
+    if tracer:
+        with tracer.span("process_message"):
         entities = extract_entities(message)  # No tracer parameter
         sentiment = classify_sentiment(message)  # No tracer parameter
         return {"entities": entities, "sentiment": sentiment}
@@ -135,11 +128,10 @@ def extract_entities(text: str):
 - ✅ No need to pass tracer as parameter
 - ✅ Works seamlessly with async/await
 - ✅ Easy to test - context is isolated per execution
+- ✅ **Built into the package - zero setup required!**
 
 ### Cons
 - ❌ Requires Python 3.7+
-- ❌ Slightly more setup than global singleton
-- ❌ Developers need to understand context variables
 
 ### When to Use
 - **Web applications** (FastAPI, Flask, Django)
