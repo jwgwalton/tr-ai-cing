@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Script to test the package build and installation locally
 
 set -e  # Exit on error
@@ -39,7 +39,7 @@ echo ""
 
 # Install from wheel
 echo "6. Installing from wheel..."
-pip install dist/tr_ai_cing-*.whl > /dev/null 2>&1
+pip install dist/tr_ai_cing-*.whl
 echo "   ✓ Installed successfully"
 echo ""
 
