@@ -208,6 +208,16 @@ pytest --cov=tracing --cov-report=html
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
 
+### For Maintainers
+
+**Testing the Build:**
+```bash
+./test_build.sh
+```
+
+**Publishing a Release:**
+See [RELEASING.md](./RELEASING.md) for detailed instructions on how to publish new versions to PyPI.
+
 ## License
 
 MIT License
