@@ -167,11 +167,11 @@ Check out the `examples/` directory for more detailed examples:
 
 - `basic_example.py`: Basic usage with simple and nested traces
 - `error_handling_example.py`: Error handling and retry patterns
+- `langgraph_example.py`: Tracing LangGraph workflows with multiple nodes and routing
 
 Run an example:
 ```bash
-cd examples
-python basic_example.py
+python examples/langgraph_example.py
 ```
 
 ## Testing
